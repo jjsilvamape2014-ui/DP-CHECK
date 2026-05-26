@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DP.check — Demo Interativo</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#07090f;min-height:100vh;font-family:'IBM Plex Sans',sans-serif;color:#c8d4e8;}
+
+/* DEMO BANNER */
+.demo-banner{
+  background:linear-gradient(90deg,#0a1f10,#0d2a0d);
+  border-bottom:2px solid #22c55e44;
+  padding:8px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.demo-tag{
+  background:#22c55e;color:#000;font-weight:700;font-size:10px;
+  padding:3px 10px;border-radius:20px;letter-spacing:1px;
+}
+.demo-text{font-size:11px;color:#86efac;font-family:'IBM Plex Mono',monospace;}
+.demo-note{font-size:10px;color:#4ade80;margin-left:auto;font-family:'IBM Plex Mono',monospace;}
+
+/* HEADER */
+.hdr{
+  background:linear-gradient(160deg,#070d1a,#0a0f20,#0d0819);
+  border-bottom:1px solid #0f2040;
+  padding:14px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;gap:10px;flex-wrap:wrap;
+}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:#4f8ef7;letter-spacing:-0.5px;}
+.logo span{color:#8b5cf6;}
+.logo .v{font-size:9px;color:#1e3a5f;letter-spacing:2px;display:block;margin-top:1px;}
+.nav{display:flex;gap:2px;background:#050b15;border:1px solid #0f2040;border-radius:8px;padding:3px;}
+.nb{padding:5px 11px;border:none;background:transparent;color:#3b5278;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;border-radius:5px;transition:all .15s;white-space:nowrap;}
+.nb.act{background:#1a3060;color:#60a5fa;}
+.nb:hover:not(.act){color:#60a5fa;}
+.emp-badge{padding:6px 14px;border-radius:7px;border:1px solid #22c55e44;color:#22c55e;background:#0a1a0e;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;}
+
+/* MAIN */
+.main{padding:22px;max-width:1400px;margin:0 auto;}
+.st{font-size:19px;font-weight:600;color:#dde4f0;margin-bottom:4px;}
+.ss{font-size:10px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;margin-bottom:18px;letter-spacing:.5px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.sc{background:#06091a;border:1px solid #0f2040;border-radius:9px;padding:14px 16px;text-align:center;}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1;margin-bottom:5px;}
+.sl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#1e3a5f;}
+.pb{height:2px;background:#0a1830;border-radius:2px;margin-top:8px;overflow:hidden;}
+.pf{height:100%;border-radius:2px;}
+.sb{width:100%;background:#050810;border:1px solid #0f2040;color:#c8d4e8;padding:8px 13px;border-radius:7px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;outline:none;margin-bottom:12px;}
+.sb:focus{border-color:#1d4ed8;}
+.card{background:#080d19;border:1px solid #0f2040;border-radius:10px;padding:18px;}
+.ct{font-size:9px;text-transform:uppercase;letter-spacing:2.5px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;margin-bottom:12px;}
+.ic{background:#06091a;border:1px solid #0f2040;border-left:3px solid;border-radius:7px;padding:9px 13px;margin-bottom:6px;display:flex;align-items:flex-start;gap:11px;transition:background .15s;}
+.ic:hover{background:#080d1f;}
+.fb{padding:4px 11px;border:1px solid;border-radius:20px;font-size:10px;cursor:pointer;font-family:'IBM Plex Mono',monospace;background:transparent;transition:all .15s;margin-right:5px;margin-bottom:5px;}
+.ab{background:#150505;border:1px solid #3b121244;border-radius:7px;padding:10px 16px;margin-bottom:16px;font-size:11px;color:#fca5a5;font-family:'IBM Plex Mono',monospace;}
+.mn{font-family:'IBM Plex Mono',monospace;}
+.tag{border-radius:3px;padding:1px 5px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:700;}
+.empty{text-align:center;padding:40px;color:#1e3a5f;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* TABELA FUNCIONÁRIOS */
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl th{padding:10px 14px;background:#050810;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:1px solid #0a1830;white-space:nowrap;}
+.tbl td{padding:8px 14px;border-bottom:1px solid #070e1a;}
+.tbl tr:hover td{background:#080d1f;}
+.tbl tr:nth-child(even) td{background:#060a14;}
+
+/* PLANILHAS */
+.pl-tab{padding:6px 12px;border:1px solid #0f2040;border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;background:#050810;color:#3b5278;transition:all .15s;}
+.pl-tab.on{background:rgba(99,102,241,.14);color:#818cf8;border-color:#818cf844;}
+
+/* RESPONSIVO */
+@media(max-width:700px){.g3,.g4{grid-template-columns:1fr 1fr;}.hdr{flex-direction:column;align-items:flex-start;}}
+@media(max-width:420px){.g3,.g4{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- BANNER DEMO -->
+<div class="demo-banner">
+  <span class="demo-tag">✦ DEMO</span>
+  <span class="demo-text">Versão demonstrativa com dados fictícios — apenas para visualização</span>
+  <span class="demo-note">DP.check v2.0 · Conferência Automática de Folha</span>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="logo">DP<span>.check</span><span class="v">v2.0 — CONFERÊNCIA DE FOLHA</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <div class="emp-badge">✓ EMPRESA EXEMPLO LTDA</div>
+    <div style="font-size:9px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;">CNPJ: 00.000.000/0001-00</div>
+  </div>
+  <div class="nav">
+    <button class="nb" onclick="showTab('upload', this)">📁 Arquivos</button>
+    <button class="nb" onclick="showTab('folha', this)">👥 Funcionários</button>
+    <button class="nb" onclick="showTab('planilhas', this)">📋 Planilhas</button>
+    <button class="nb act" onclick="showTab('resultado', this)">⚠️ Resultado</button>
+  </div>
+  <div style="font-size:10px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;text-align:right;line-height:1.8;">
+    <div style="color:#22c55e;font-weight:700;">EMPRESA EXEMPLO LTDA</div>
+    <div style="color:#22c55e;">48 funcs. carregados</div>
+    <div style="color:#60a5fa;">9 planilha(s)</div>
+    <div style="color:#ef4444;">7 crítico(s) · 3 atenção</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════ ABA UPLOAD ═══════════ -->
+<div class="section" id="tab-upload">
+  <div class="st">Carregar Arquivos</div>
+  <div class="ss">Nesta versão demo os dados já estão pré-carregados. Na versão completa você importa o PDF da folha + planilhas Excel.</div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ct">📄 PDF da Folha — Pré-carregado no demo</div>
+    <div style="border:1px solid #15503a;border-radius:9px;padding:18px;background:#030f09;text-align:center;">
+      <div style="font-size:22px;margin-bottom:7px;">✅</div>
+      <div style="font-size:12px;color:#22c55e;font-weight:700;margin-bottom:4px;">Folha_Maio_2026_EmpresaExemplo.pdf</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#22c55e;margin-top:4px;">✓ 48 funcionários extraídos · 4 estagiários / aprendizes</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ct">📋 Planilhas de conferência carregadas</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">⚡</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Periculosidade</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 38 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🌙</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Sobreaviso</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 22 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🏥</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Plano Saúde</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 31 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🦷</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Odontológico</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 29 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🚗</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Condutor</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 28 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">☣️</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Insalubridade</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 8 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🏦</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Comissões</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 5 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">💰</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Gratif. 90 dias</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 3 registros</div>
+      </div>
+      <div style="border:1px solid #15503a;border-radius:9px;padding:13px 10px;background:#030f09;text-align:center;">
+        <div style="font-size:18px;margin-bottom:4px;">🏧</div>
+        <div style="font-size:10px;color:#22c55e;font-weight:600;margin-bottom:2px;">Quebra de Caixa</div>
+        <div style="font-size:9px;color:#22c55e;font-family:'IBM Plex Mono',monospace;">✓ 4 registros</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:12px 16px;background:#050b15;border:1px solid #0f2040;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#3b5278;">
+    💡 Na versão completa você arrasta o PDF da folha e os arquivos Excel. O sistema detecta e extrai tudo automaticamente.
+  </div>
+</div>
+
+<!-- ═══════════ ABA FUNCIONÁRIOS ═══════════ -->
+<div class="section" id="tab-folha">
+  <div class="st">Funcionários Extraídos</div>
+  <div class="ss">48 registros · 42 ativos · 4 est./aprendizes · 2 demitidos · dados extraídos automaticamente do PDF</div>
+
+  <div class="g4">
+    <div class="sc"><div class="sn" style="color:#22c55e;">R$ 387.420</div><div class="sl">Total Proventos</div></div>
+    <div class="sc"><div class="sn" style="color:#f59e0b;">R$ 89.340</div><div class="sl">Total Descontos</div></div>
+    <div class="sc"><div class="sn" style="color:#60a5fa;">R$ 298.080</div><div class="sl">Total Líquido</div></div>
+    <div class="sc"><div class="sn" style="color:#34d399;">R$ 331.240</div><div class="sl">Total Recebido*</div></div>
+  </div>
+  <div style="font-size:9px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;margin-bottom:12px;">* Total Recebido = Adiantamento + Líquido mensal</div>
+
+  <input class="sb" placeholder="🔍 Buscar por nome..." oninput="filtrarFuncs(this.value)">
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table class="tbl" id="tbl-funcs">
+      <thead>
+        <tr>
+          <th>Nome</th><th>Cargo</th><th>Situação</th><th style="text-align:right">Sal. Base</th>
+          <th style="text-align:right">Proventos</th><th style="text-align:right">Descontos</th>
+          <th style="text-align:right">Líquido</th><th>Verbas</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-funcs"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════ ABA PLANILHAS ═══════════ -->
+<div class="section" id="tab-planilhas">
+  <div class="st">Planilhas de Referência</div>
+  <div class="ss">Dados carregados automaticamente — usados para cruzar com a folha de pagamento</div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;" id="pl-tabs"></div>
+
+  <div class="card" style="padding:0;overflow:hidden;" id="pl-content"></div>
+
+  <div style="margin-top:12px;font-size:9px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;padding:8px 12px;background:#050810;border-radius:7px;border:1px solid #0a1830;">
+    💡 Na versão completa, cada planilha pode ser atualizada individualmente sem precisar recarregar o PDF.
+  </div>
+</div>
+
+<!-- ═══════════ ABA RESULTADO ═══════════ -->
+<div class="section active" id="tab-resultado">
+  <div class="st">Resultado da Conferência</div>
+  <div class="ss">10 inconsistência(s) · 46 ativos analisados · Conferência completa · Maio/2026</div>
+
+  <div class="ab">⚠️ 7 INCONSISTÊNCIA(S) CRÍTICA(S) — revisar antes de fechar a folha</div>
+
+  <div class="g3">
+    <div class="sc" style="border-color:#3b0a0a;background:#150303;">
+      <div class="sn" style="color:#ef4444;">7</div>
+      <div class="sl">Crítico</div>
+      <div class="pb"><div class="pf" style="width:70%;background:#ef4444;"></div></div>
+    </div>
+    <div class="sc" style="border-color:#3b2006;background:#150b03;">
+      <div class="sn" style="color:#f59e0b;">3</div>
+      <div class="sl">Atenção</div>
+      <div class="pb"><div class="pf" style="width:30%;background:#f59e0b;"></div></div>
+    </div>
+    <div class="sc" style="border-color:#0c1e48;background:#030c1a;">
+      <div class="sn" style="color:#3b82f6;">0</div>
+      <div class="sl">Observação</div>
+      <div class="pb"><div class="pf" style="width:0%;background:#3b82f6;"></div></div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div style="margin-bottom:12px;">
+    <button class="fb" style="border-color:#60a5fa;color:#fff;background:#0f2040;" onclick="filtrarInc('todas')">Todas (10)</button>
+    <button class="fb" style="border-color:#ef4444;color:#ef4444;" onclick="filtrarInc('alta')">⚠ Crítico (7)</button>
+    <button class="fb" style="border-color:#f59e0b;color:#f59e0b;" onclick="filtrarInc('media')">◉ Atenção (3)</button>
+  </div>
+
+  <div id="lista-inconsistencias"></div>
+
+  <!-- TOTAIS -->
+  <div class="card" style="margin-top:20px;background:#04070e;">
+    <div class="ct">📊 Totais da Folha — EMPRESA EXEMPLO LTDA · Maio/2026</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Ativos</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">44</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Demitidos</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">2</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Estagiários</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">3</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Aprendizes</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">1</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Com Periculosidade</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">38</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Com Sobreaviso</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">22</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Com Plano Saúde</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">31</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Com Insalubridade</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">8</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Total Proventos</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">R$ 387.420,00</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Total Descontos</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">R$ 89.340,00</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Total Líquido</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">R$ 298.080,00</div></div>
+      <div style="padding:10px 0;border-bottom:1px solid #07090f;"><div style="font-size:8px;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;">Total Recebido*</div><div style="font-size:14px;font-weight:600;color:#dde4f0;font-family:'IBM Plex Mono',monospace;">R$ 331.240,00</div></div>
+    </div>
+    <div style="font-size:9px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;margin-top:12px;">* Total Recebido = Adiantamento salarial + Líquido mensal</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════
+// DADOS FICTÍCIOS
+// ════════════════════════════════════════
+
+const FUNCIONARIOS = [
+  {nome:'Ana Clara Ferreira',cargo:'Analista de Sistemas',sit:'Trabalhando',sal:4800,prov:7240,desc:1820,liq:5420,verbas:['PERC','SA','PS','OD']},
+  {nome:'Bruno Henrique Costa',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2800,prov:4560,desc:980,liq:3580,verbas:['PERC','COND','VT']},
+  {nome:'Carlos Eduardo Lima',cargo:'Supervisor Operacional',sit:'Trabalhando',sal:5200,prov:9340,desc:2100,liq:7240,verbas:['PERC','SA','PS','OD','COND']},
+  {nome:'Daniela Santos Melo',cargo:'Assistente Administrativa',sit:'Trabalhando',sal:2200,prov:2640,desc:540,liq:2100,verbas:['PS','OD','VT']},
+  {nome:'Eduardo Alves Pinto',cargo:'Eletricista Instalador',sit:'Trabalhando',sal:3100,prov:5180,desc:1120,liq:4060,verbas:['PERC','VT']},
+  {nome:'Fernanda Rocha Silva',cargo:'Coordenadora de RH',sit:'Trabalhando',sal:6800,prov:8200,desc:2340,liq:5860,verbas:['PS','OD','COM']},
+  {nome:'Gabriel Sousa Nunes',cargo:'Técnico de Fibra Óptica',sit:'Trabalhando',sal:2600,prov:4920,desc:1080,liq:3840,verbas:['PERC','COND','VT']},
+  {nome:'Helena Martins Costa',cargo:'Estagiária Jurídico',sit:'Trabalhando',sal:1200,prov:1500,desc:0,liq:1500,verbas:['VT']},
+  {nome:'Igor Tavares Gomes',cargo:'Técnico de Campo',sit:'Férias',sal:2750,prov:3200,desc:640,liq:2560,verbas:['PERC','COND']},
+  {nome:'Juliana Nascimento',cargo:'Analista Financeira',sit:'Trabalhando',sal:5400,prov:6100,desc:1480,liq:4620,verbas:['PS','OD']},
+  {nome:'Kevin Andrade Luz',cargo:'Aprendiz Administrativo',sit:'Trabalhando',sal:850,prov:920,desc:0,liq:920,verbas:['VT']},
+  {nome:'Larissa Campos Viana',cargo:'Gerente Comercial',sit:'Trabalhando',sal:8200,prov:12400,desc:3100,liq:9300,verbas:['PS','OD','COM','G90']},
+  {nome:'Marcos Oliveira Reis',cargo:'Eletricista Sênior',sit:'Trabalhando',sal:3800,prov:6840,desc:1520,liq:5320,verbas:['PERC','SA','VT']},
+  {nome:'Natalia Ferreira Leal',cargo:'Assistente de DP',sit:'Trabalhando',sal:2400,prov:2880,desc:580,liq:2300,verbas:['PS','VT']},
+  {nome:'Oswaldo Peixoto Cruz',cargo:'Técnico de Manutenção',sit:'Trabalhando',sal:2900,prov:4640,desc:960,liq:3680,verbas:['PERC','COND','VT']},
+  {nome:'Patricia Lima Borges',cargo:'Supervisora Administrativa',sit:'Trabalhando',sal:5600,prov:6720,desc:1680,liq:5040,verbas:['PS','OD','QB']},
+  {nome:'Renato Barroso Neto',cargo:'Técnico de Campo Sênior',sit:'Trabalhando',sal:3500,prov:6300,desc:1260,liq:5040,verbas:['PERC','SA','COND']},
+  {nome:'Silvia Mendonça Faro',cargo:'Auxiliar Administrativo',sit:'Trabalhando',sal:1800,prov:2160,desc:420,liq:1740,verbas:['VT']},
+  {nome:'Thiago Rafael Moura',cargo:'Instalador de Fibra',sit:'Trabalhando',sal:2400,prov:4080,desc:860,liq:3220,verbas:['PERC','VT']},
+  {nome:'Ursula Cavalcante',cargo:'Diretora Operacional',sit:'Trabalhando',sal:12000,prov:15600,desc:4200,liq:11400,verbas:['PS','OD']},
+  {nome:'Victor Nogueira Paz',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2700,prov:4860,desc:980,liq:3880,verbas:['PERC','COND','VT']},
+  {nome:'Walmir Santos Brito',cargo:'Eletricista',sit:'Trabalhando',sal:3200,prov:5440,desc:1120,liq:4320,verbas:['PERC','VT']},
+  {nome:'Ximena Almeida Costa',cargo:'Estagiária de TI',sit:'Trabalhando',sal:1300,prov:1600,desc:0,liq:1600,verbas:[]},
+  {nome:'Yuri Fonseca Melo',cargo:'Analista de TI',sit:'Trabalhando',sal:5100,prov:6120,desc:1480,liq:4640,verbas:['PS','OD']},
+  {nome:'Zilda Carvalho Rosa',cargo:'Recepcionista',sit:'Trabalhando',sal:1600,prov:1920,desc:380,liq:1540,verbas:['VT','PS']},
+  {nome:'Alexandre Prado Jr.',cargo:'Técnico Eletricista',sit:'Trabalhando',sal:3000,prov:5100,desc:1020,liq:4080,verbas:['PERC','VT']},
+  {nome:'Beatriz Cunha Lopes',cargo:'Assistente de RH',sit:'Trabalhando',sal:2100,prov:2520,desc:500,liq:2020,verbas:['VT']},
+  {nome:'Cícero Andrade Mota',cargo:'Supervisor de Campo',sit:'Trabalhando',sal:4200,prov:7560,desc:1680,liq:5880,verbas:['PERC','SA','COND']},
+  {nome:'Debora Leal Souza',cargo:'Analista Contábil',sit:'Férias',sal:4600,prov:5520,desc:1240,liq:4280,verbas:['PS','OD']},
+  {nome:'Emerson Rodrigues',cargo:'Técnico Sênior',sit:'Trabalhando',sal:3600,prov:6120,desc:1320,liq:4800,verbas:['PERC','SA','INSAL']},
+  {nome:'Fábio Feitosa Lima',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2650,prov:4240,desc:860,liq:3380,verbas:['PERC','COND']},
+  {nome:'Gisele Pantoja Lopes',cargo:'Assistente Financeiro',sit:'Trabalhando',sal:2300,prov:2760,desc:550,liq:2210,verbas:['PS','QB']},
+  {nome:'Histine Ramos Gomes',cargo:'Coordenador de Campo',sit:'Trabalhando',sal:4500,prov:7650,desc:1700,liq:5950,verbas:['PERC','INSAL']},
+  {nome:'Israel Joaquim Santos',cargo:'Técnico de Manutenção',sit:'Trabalhando',sal:2800,prov:4480,desc:960,liq:3520,verbas:['PERC','PS','OD']},
+  {nome:'Josileia Miranda Tei.',cargo:'Auxiliar de Escritório',sit:'Trabalhando',sal:1700,prov:2380,desc:580,liq:1800,verbas:['PS','OD','INSAL']},
+  {nome:'Lorena Alethia Souza',cargo:'Estagiária Contábil',sit:'Trabalhando',sal:1100,prov:1400,desc:0,liq:1400,verbas:[]},
+  {nome:'Márcio Pirillo Neto',cargo:'Técnico Sênior',sit:'Trabalhando',sal:4100,prov:7380,desc:1640,liq:5740,verbas:['PERC','SA','PS']},
+  {nome:'Nathalia Menezes',cargo:'Assistente Jurídica',sit:'Trabalhando',sal:2800,prov:3360,desc:720,liq:2640,verbas:['PS','INSAL']},
+  {nome:'Odailson Amaral',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2600,prov:4160,desc:860,liq:3300,verbas:['PERC','COND','VT']},
+  {nome:'Pablo Messias Luz',cargo:'Auxiliar Técnico',sit:'Trabalhando',sal:1900,prov:2280,desc:450,liq:1830,verbas:['VT']},
+  {nome:'Reynan Arruda Santos',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2500,prov:4500,desc:920,liq:3580,verbas:['PERC','SA','COND']},
+  {nome:'Rodrigo Silva Costa',cargo:'Analista de Suporte',sit:'Trabalhando',sal:3800,prov:4560,desc:1020,liq:3540,verbas:['PS']},
+  {nome:'Sarah Letícia Silva',cargo:'Assistente Comercial',sit:'Trabalhando',sal:2200,prov:2640,desc:520,liq:2120,verbas:['PS','OD','VT']},
+  {nome:'Talielson Coelho',cargo:'Técnico de Campo',sit:'Trabalhando',sal:2400,prov:4080,desc:840,liq:3240,verbas:['PERC','PS','OD']},
+  {nome:'William Calebe Dias',cargo:'Analista de Redes',sit:'Trabalhando',sal:4200,prov:6720,desc:1480,liq:5240,verbas:['PS','SA']},
+  {nome:'Joana Mota Farias',cargo:'Supervisora de Vendas',sit:'Demitido',sal:4800,prov:0,desc:0,liq:0,verbas:[]},
+  {nome:'Roberto Pinheiro',cargo:'Técnico de Campo',sit:'Demitido',sal:2700,prov:0,desc:0,liq:0,verbas:[]},
+];
+
+const TAG_COLORS = {
+  PERC:{bg:'#2a1b00',c:'#fbbf24'},
+  SA:{bg:'#041a3a',c:'#93c5fd'},
+  PS:{bg:'#04203a',c:'#38bdf8'},
+  OD:{bg:'#032818',c:'#34d399'},
+  COND:{bg:'#2a1205',c:'#fdba74'},
+  INSAL:{bg:'#2a1000',c:'#fb923c'},
+  VT:{bg:'#1e0e52',c:'#c4b5fd'},
+  QB:{bg:'#1a2e05',c:'#84cc16'},
+  G90:{bg:'#2a1f00',c:'#fde68a'},
+  COM:{bg:'#042010',c:'#86efac'},
+};
+
+const INCONSISTENCIAS = [
+  {gravidade:'alta',func:'Bruno Henrique Costa',cargo:'Técnico de Campo',tipo:'SOBREAVISO DIVERGENTE',detalhe:'Planilha: R$ 2.847,50 | Folha: R$ 1.923,60 — diferença de R$ 923,90'},
+  {gravidade:'alta',func:'Carlos Eduardo Lima',cargo:'Supervisor Operacional',tipo:'PLANO SAÚDE — VALOR DIVERGENTE',detalhe:'Operadora (Unimed): R$ 403,52 | Folha: R$ 258,65 — diferença de R$ 144,87'},
+  {gravidade:'alta',func:'Eduardo Alves Pinto',cargo:'Eletricista Instalador',tipo:'PERICULOSIDADE FALTANDO',detalhe:'Planilha indica periculosidade | Folha: cód 64 não lançado — R$ 553,80 a incluir'},
+  {gravidade:'alta',func:'Marcos Oliveira Reis',cargo:'Eletricista Sênior',tipo:'ADICIONAL CONDUTOR FALTANDO',detalhe:'Planilha: R$ 100,00 | Folha: cód 4106 não lançado'},
+  {gravidade:'alta',func:'Ximena Almeida Costa',cargo:'Estagiária de TI',tipo:'SEM AUXÍLIO TRANSPORTE',detalhe:'Estagiária sem Auxílio Transporte (R$ 300,00) lançado — cód 4089'},
+  {gravidade:'alta',func:'Lorena Alethia Souza',cargo:'Estagiária Contábil',tipo:'SEM AUXÍLIO TRANSPORTE',detalhe:'Estagiária sem Auxílio Transporte (R$ 300,00) lançado — cód 4089'},
+  {gravidade:'alta',func:'Reynan Arruda Santos',cargo:'Técnico de Campo',tipo:'SOBREAVISO FALTANDO',detalhe:'Planilha: R$ 1.482,30 | Folha: sobreaviso não lançado'},
+  {gravidade:'media',func:'Fernanda Rocha Silva',cargo:'Coordenadora de RH',tipo:'COMISSÃO DIVERGENTE',detalhe:'Planilha cód 90: R$ 1.200,00 | Folha cód 90: R$ 980,00 — diferença de R$ 220,00'},
+  {gravidade:'media',func:'Gisele Pantoja Lopes',cargo:'Assistente Financeiro',tipo:'QUEBRA DE CAIXA FALTANDO',detalhe:'Planilha: R$ 102,60 | Folha: cód 1102 não lançado'},
+  {gravidade:'media',func:'Josileia Miranda Tei.',cargo:'Auxiliar de Escritório',tipo:'ODONTO DIVERGENTE',detalhe:'Planilha: R$ 689,71 | Folha: R$ 544,05 — diferença de R$ 145,66'},
+];
+
+const PLANILHAS = {
+  periculosidade:{label:'Periculosidade',icon:'⚡',cor:'#fbbf24',dados:[
+    {nome:'Ana Clara Ferreira',valor:553.80},{nome:'Bruno Henrique Costa',valor:553.80},
+    {nome:'Carlos Eduardo Lima',valor:648.60},{nome:'Eduardo Alves Pinto',valor:553.80},
+    {nome:'Gabriel Sousa Nunes',valor:553.80},{nome:'Igor Tavares Gomes',valor:553.80},
+    {nome:'Marcos Oliveira Reis',valor:553.80},{nome:'Oswaldo Peixoto Cruz',valor:609.30},
+    {nome:'Renato Barroso Neto',valor:553.80},{nome:'Thiago Rafael Moura',valor:553.80},
+    {nome:'Victor Nogueira Paz',valor:553.80},{nome:'Walmir Santos Brito',valor:553.80},
+    {nome:'Alexandre Prado Jr.',valor:553.80},{nome:'Cícero Andrade Mota',valor:648.60},
+    {nome:'Emerson Rodrigues',valor:648.60},{nome:'Fábio Feitosa Lima',valor:553.80},
+    {nome:'Histine Ramos Gomes',valor:609.30},{nome:'Israel Joaquim Santos',valor:553.80},
+    {nome:'Márcio Pirillo Neto',valor:959.10},{nome:'Odailson Amaral',valor:553.80},
+    {nome:'Reynan Arruda Santos',valor:553.80},{nome:'Talielson Coelho',valor:553.80},
+  ]},
+  sobreaviso:{label:'Sobreaviso',icon:'🌙',cor:'#93c5fd',dados:[
+    {nome:'Ana Clara Ferreira',valor:1841.20},{nome:'Bruno Henrique Costa',valor:2847.50},
+    {nome:'Carlos Eduardo Lima',valor:2204.80},{nome:'Cícero Andrade Mota',valor:1237.55},
+    {nome:'Emerson Rodrigues',valor:1579.21},{nome:'Fábio Feitosa Lima',valor:901.04},
+    {nome:'Igor Tavares Gomes',valor:1202.12},{nome:'Marcos Oliveira Reis',valor:1428.96},
+    {nome:'Márcio Pirillo Neto',valor:2047.25},{nome:'Oswaldo Peixoto Cruz',valor:669.12},
+    {nome:'Renato Barroso Neto',valor:1805.15},{nome:'Reynan Arruda Santos',valor:1482.30},
+    {nome:'Victor Nogueira Paz',valor:1220.05},{nome:'William Calebe Dias',valor:1137.71},
+  ]},
+  planoSaude:{label:'Plano Saúde',icon:'🏥',cor:'#38bdf8',dados:[
+    {nome:'Ana Clara Ferreira',valor:258.65},{nome:'Carlos Eduardo Lima',valor:380.07},
+    {nome:'Bruno Henrique Costa',valor:403.52},{nome:'Daniela Santos Melo',valor:173.35},
+    {nome:'Fernanda Rocha Silva',valor:258.65},{nome:'Israel Joaquim Santos',valor:157.39},
+    {nome:'Josileia Miranda Tei.',valor:520.05},{nome:'Juliana Nascimento',valor:258.65},
+    {nome:'Larissa Campos Viana',valor:403.52},{nome:'Márcio Pirillo Neto',valor:173.35},
+    {nome:'Natalia Ferreira Leal',valor:157.39},{nome:'Patricia Lima Borges',valor:380.07},
+    {nome:'Rodrigo Silva Costa',valor:173.35},{nome:'Sarah Letícia Silva',valor:157.39},
+    {nome:'Talielson Coelho',valor:157.39},{nome:'Ursula Cavalcante',valor:639.39},
+    {nome:'William Calebe Dias',valor:173.35},{nome:'Yuri Fonseca Melo',valor:157.39},
+    {nome:'Zilda Carvalho Rosa',valor:168.95},
+  ]},
+  odonto:{label:'Odontológico',icon:'🦷',cor:'#34d399',dados:[
+    {nome:'Ana Clara Ferreira',valor:12.00},{nome:'Carlos Eduardo Lima',valor:24.00},
+    {nome:'Daniela Santos Melo',valor:12.00},{nome:'Fernanda Rocha Silva',valor:12.00},
+    {nome:'Israel Joaquim Santos',valor:166.74},{nome:'Josileia Miranda Tei.',valor:689.71},
+    {nome:'Juliana Nascimento',valor:181.39},{nome:'Larissa Campos Viana',valor:416.07},
+    {nome:'Márcio Pirillo Neto',valor:185.35},{nome:'Natalia Ferreira Leal',valor:157.39},
+    {nome:'Patricia Lima Borges',valor:396.47},{nome:'Sarah Letícia Silva',valor:169.39},
+    {nome:'Talielson Coelho',valor:154.74},{nome:'Ursula Cavalcante',valor:157.39},
+    {nome:'William Calebe Dias',valor:173.35},{nome:'Yuri Fonseca Melo',valor:169.39},
+  ]},
+  condutor:{label:'Condutor',icon:'🚗',cor:'#fdba74',dados:[
+    {nome:'Bruno Henrique Costa',valor:100.00},{nome:'Cícero Andrade Mota',valor:100.00},
+    {nome:'Fábio Feitosa Lima',valor:100.00},{nome:'Gabriel Sousa Nunes',valor:100.00},
+    {nome:'Igor Tavares Gomes',valor:100.00},{nome:'Marcos Oliveira Reis',valor:100.00},
+    {nome:'Odailson Amaral',valor:100.00},{nome:'Oswaldo Peixoto Cruz',valor:100.00},
+    {nome:'Reynan Arruda Santos',valor:100.00},{nome:'Renato Barroso Neto',valor:96.67},
+    {nome:'Victor Nogueira Paz',valor:100.00},{nome:'Walmir Santos Brito',valor:80.00},
+  ]},
+  insalubridade:{label:'Insalubridade',icon:'☣️',cor:'#fb923c',dados:[
+    {nome:'Emerson Rodrigues',valor:324.20},{nome:'Histine Ramos Gomes',valor:324.20},
+    {nome:'Josileia Miranda Tei.',valor:324.20},{nome:'Nathalia Menezes',valor:324.20},
+  ]},
+  comissao:{label:'Comissões',icon:'🏦',cor:'#86efac',dados:[
+    {nome:'Fernanda Rocha Silva',valor:1200.00},{nome:'Larissa Campos Viana',valor:2800.00},
+    {nome:'Natalia Ferreira Leal',valor:450.00},{nome:'Rodrigo Silva Costa',valor:750.00},
+    {nome:'Ursula Cavalcante',valor:3200.00},
+  ]},
+  gratif90:{label:'Gratif. 90d',icon:'💰',cor:'#fde68a',dados:[
+    {nome:'Larissa Campos Viana',valor:439.00},{nome:'Renato Barroso Neto',valor:49.00},
+    {nome:'Ursula Cavalcante',valor:780.00},
+  ]},
+  quebra:{label:'Quebra de Caixa',icon:'🏧',cor:'#84cc16',dados:[
+    {nome:'Daniela Santos Melo',valor:102.60},{nome:'Gisele Pantoja Lopes',valor:102.60},
+    {nome:'Patricia Lima Borges',valor:102.60},{nome:'Zilda Carvalho Rosa',valor:99.18},
+  ]},
+};
+
+// ════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════
+
+function fmt(v){return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// Funcionários
+let funcsFiltrados = [...FUNCIONARIOS];
+function renderFuncs(list){
+  const tbody = document.getElementById('tbody-funcs');
+  const sitCor = {Trabalhando:'#22c55e',Férias:'#f59e0b',Demitido:'#ef4444'};
+  tbody.innerHTML = list.map(f=>`
+    <tr>
+      <td style="font-weight:600;color:#dde4f0;">${f.nome}</td>
+      <td style="color:#3b5278;font-size:10px;">${f.cargo}</td>
+      <td><span style="padding:1px 7px;border-radius:3px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:700;color:${sitCor[f.sit]||'#3b5278'};background:${sitCor[f.sit]||'#1e3a5f'}22;">${f.sit}</span></td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:#60a5fa;">R$ ${fmt(f.sal)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:#22c55e;">R$ ${fmt(f.prov)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:#f59e0b;">R$ ${fmt(f.desc)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:#34d399;">R$ ${fmt(f.liq)}</td>
+      <td style="font-size:0;">${f.verbas.map(v=>{const t=TAG_COLORS[v]||{bg:'#1e2535',c:'#8490a8'};return`<span class="tag" style="background:${t.bg};color:${t.c};margin:1px;">${v}</span>`;}).join('')}</td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">Nenhum resultado</td></tr>';
+}
+renderFuncs(FUNCIONARIOS);
+
+function filtrarFuncs(q){
+  funcsFiltrados = q ? FUNCIONARIOS.filter(f=>f.nome.toLowerCase().includes(q.toLowerCase())||f.cargo.toLowerCase().includes(q.toLowerCase())) : [...FUNCIONARIOS];
+  renderFuncs(funcsFiltrados);
+}
+
+// Planilhas
+let plAtiva = 'periculosidade';
+function renderPlTabs(){
+  const tabs = document.getElementById('pl-tabs');
+  tabs.innerHTML = Object.entries(PLANILHAS).map(([k,v])=>`
+    <button class="pl-tab${k===plAtiva?' on':''}" onclick="selectPl('${k}')"
+      style="${k===plAtiva?`border-color:${v.cor}44;color:${v.cor};background:${v.cor}14;`:''}">
+      ${v.icon} ${v.label} <span style="opacity:.5;">(${v.dados.length})</span>
+    </button>`).join('');
+}
+function selectPl(k){plAtiva=k;renderPlTabs();renderPlContent();}
+function renderPlContent(){
+  const pl = PLANILHAS[plAtiva];
+  const el = document.getElementById('pl-content');
+  el.innerHTML = `
+    <div style="padding:12px 16px;background:#04070e;border-bottom:1px solid #0a1830;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:14px;">${pl.icon}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:${pl.cor};font-weight:600;">${pl.label}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#1e3a5f;">${pl.dados.length} registros</span>
+    </div>
+    <div style="overflow-x:auto;max-height:420px;overflow-y:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead>
+          <tr>
+            <th style="padding:10px 14px;background:#050810;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:1px solid #0a1830;position:sticky;top:0;">Nome</th>
+            <th style="padding:10px 14px;background:#050810;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;text-align:right;border-bottom:1px solid #0a1830;position:sticky;top:0;">Valor (R$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pl.dados.map((r,i)=>`
+            <tr style="border-bottom:1px solid #070e1a;background:${i%2?'#060a14':'#080d19'};">
+              <td style="padding:8px 14px;color:#c8d4e8;font-family:'IBM Plex Mono',monospace;">${r.nome}</td>
+              <td style="padding:8px 14px;color:${pl.cor};font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:600;">R$ ${fmt(r.valor)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+renderPlTabs();
+renderPlContent();
+
+// Inconsistências
+let filtroInc = 'todas';
+function renderInc(){
+  const lista = document.getElementById('lista-inconsistencias');
+  const corG = {alta:'#ef4444',media:'#f59e0b',baixa:'#3b82f6'};
+  const bgG  = {alta:'#150303',media:'#150b03',baixa:'#030c1a'};
+  const list = filtroInc==='todas' ? INCONSISTENCIAS : INCONSISTENCIAS.filter(i=>i.gravidade===filtroInc);
+  lista.innerHTML = list.map(inc=>`
+    <div class="ic" style="border-left-color:${corG[inc.gravidade]};">
+      <div style="min-width:80px;flex-shrink:0;">
+        <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:700;background:${bgG[inc.gravidade]};color:${corG[inc.gravidade]};">
+          ${inc.gravidade==='alta'?'⚠ CRÍTICO':'◉ ATENÇÃO'}
+        </span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:#dde4f0;margin-bottom:2px;">${inc.func}</div>
+        <div style="font-size:9px;color:#1e3a5f;font-family:'IBM Plex Mono',monospace;margin-bottom:5px;">${inc.cargo}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span style="padding:1px 7px;border-radius:3px;font-size:9px;font-family:'IBM Plex Mono',monospace;background:#050810;color:#3b5278;border:1px solid #0f2040;">${inc.tipo}</span>
+          <span style="font-size:11px;color:#4f8ef7;font-family:'IBM Plex Mono',monospace;">${inc.detalhe}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+renderInc();
+
+function filtrarInc(f){
+  filtroInc=f;
+  // atualizar botões
+  document.querySelectorAll('.fb').forEach(b=>{ b.style.background='transparent'; b.style.color=b.style.borderColor; });
+  renderInc();
+}
+
+// Navegação
+function showTab(name, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('act'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('act');
+}
+</script>
+</body>
+</html>
